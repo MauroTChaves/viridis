@@ -57,4 +57,9 @@ public class FabricanteServiceImpl implements FabricanteService {
 			this.fabricanteRepository.save(fabricante);	
 		}	
 	}
+	
+	@Override
+	public void deletarFabricante(Long idFabricante) {
+		this.fabricanteRepository.delete(idFabricante);
+	}
 }

@@ -23,4 +23,10 @@ public interface FabricanteService {
 	 * @param fabricante
 	 */
 	void salvarFabricante(Fabricante fabricante);
+	
+	/**
+	 * Método para deletar um fabricante no database
+	 * @param idFabricante
+	 */
+	void deletarFabricante(Long idFabricante);
 }
