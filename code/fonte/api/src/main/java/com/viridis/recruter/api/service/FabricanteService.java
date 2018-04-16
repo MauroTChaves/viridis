@@ -17,4 +17,10 @@ public interface FabricanteService {
 	 * @return Fabricante passando como parametro o id.
 	 */
 	Fabricante findById(Long id);
+	
+	/**
+	 * Método para salvar um novo fabricante no database
+	 * @param fabricante
+	 */
+	void salvarFabricante(Fabricante fabricante);
 }

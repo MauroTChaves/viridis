@@ -41,10 +41,20 @@ public class FabricanteServiceImpl implements FabricanteService {
 	public Fabricante findById(Long idFabricante) {
 		Fabricante fabricante = new Fabricante();
 		try {
-			fabricante = this.fabricanteRepository.findById(idFabricante);
+			if(idFabricante != null) {
+				fabricante = this.fabricanteRepository.findById(idFabricante);
+			}
+			
 		} catch (Exception e) {
 			// TODO: Fazer o tratamendo a exceção
 		}
 		return fabricante;
+	}
+	
+	@Override
+	public void salvarFabricante(Fabricante fabricante) {
+		if(fabricante != null) {
+			this.fabricanteRepository.save(fabricante);	
+		}	
 	}
 }
