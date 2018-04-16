@@ -46,6 +46,7 @@ public class FabricanteController {
 		return fabricanteService.findById(fabricanteId);
 	}
 	
+	@ResponseStatus(HttpStatus.OK)
 	@PostMapping(value = {"/novoFabricante"})
 	public void salvarFabricante(@RequestBody Fabricante fabricante) throws SQLException {
 		try {
@@ -53,6 +54,23 @@ public class FabricanteController {
         } catch (ServiceException e) {
         	//TODO: Fazer tratamento de exceção
         }
+		
+	}
+	
+	//TODO : Erro no método de alteração
+	@ResponseStatus(HttpStatus.OK)
+    @RequestMapping(method = RequestMethod.PUT,
+    consumes = MediaType.APPLICATION_JSON_VALUE,
+    produces = MediaType.APPLICATION_JSON_VALUE)
+	public Fabricante editarFabricante(@RequestBody Fabricante fabricante) {
+		Fabricante fabricanteAlterado = this.fabricanteService.findById(fabricante.getId());
+		try {
+			this.fabricanteService.salvarFabricante(fabricanteAlterado);
+			return fabricanteAlterado;
+        } catch (ServiceException e) {
+        	//TODO: Fazer tratamento de exceção
+        }	
+		return fabricante;
 		
 	}
 	
@@ -65,10 +83,12 @@ public class FabricanteController {
 			Fabricante fabricanteDeletado = this.fabricanteService.findById(fabricanteId);
 			if(fabricanteDeletado != null) {
 				this.fabricanteService.deletarFabricante(fabricanteDeletado.getId());
-				statusDelacao = HttpStatus.OK.toString();
+				statusDelacao = "Fabricante " + fabricanteDeletado.getNome() + " deletado com sucesso";
+			}else {
+				statusDelacao = "Fabricante de id " + fabricanteId + " não encontrado.";
 			}
 		} catch (Exception e) {
-			statusDelacao = HttpStatus.NOT_FOUND.toString();
+			statusDelacao = "Erro ao deletar fabricante";
 		}
 		return  statusDelacao;
 	}
