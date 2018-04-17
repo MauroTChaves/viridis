@@ -10,10 +10,4 @@ import com.viridis.recruter.api.entity.Equipamento;
  *
  */
 public interface EquipamentoRepository extends CrudRepository<Equipamento, Long> {
-	/**
-	 * Método que retona um equipamento cadastrado
-	 * @param id
-	 * @return
-	 */
-	Equipamento findById(Long id);
 }
