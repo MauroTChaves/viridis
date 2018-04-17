@@ -107,5 +107,4 @@ public class FabricanteController {
 		}
 		return statusDelacao;
 	}
-
 }

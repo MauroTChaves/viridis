@@ -31,4 +31,5 @@ public interface FabricanteService {
 	 * @param idFabricante
 	 */
 	void deletarFabricante(Long idFabricante);
+	
 }

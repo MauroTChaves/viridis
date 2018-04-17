@@ -18,8 +18,12 @@ import com.viridis.recruter.api.repository.FabricanteRepository;
 @Service
 public class FabricanteServiceImpl implements FabricanteService {
 
-	@Autowired
 	private FabricanteRepository fabricanteRepository;
+
+	@Autowired
+	public FabricanteServiceImpl(FabricanteRepository fabricanteRepository) {
+		this.fabricanteRepository = fabricanteRepository;
+	}
 
 	@Override
 	public List<Fabricante> findAll() {
@@ -62,4 +66,5 @@ public class FabricanteServiceImpl implements FabricanteService {
 	public void deletarFabricante(Long idFabricante) {
 		this.fabricanteRepository.delete(idFabricante);
 	}
+ss
 }
