@@ -11,7 +11,8 @@ import com.viridis.recruter.api.repository.EquipamentoRepository;
 
 /**
  * Implenetação dos métodos da interface de serviço
- * @author benicio
+ * 
+ * @author mauro.chaves
  *
  */
 @Service
@@ -19,45 +20,44 @@ public class EquipamentoServiceImpl implements EquipamentoService {
 
 	@Autowired
 	private EquipamentoRepository equipamentoRepository;
-    
+
 	@Override
 	public List<Equipamento> findAll() {
 		List<Equipamento> listaEquipamentos = new ArrayList<>();
 		try {
 			listaEquipamentos = (List<Equipamento>) this.equipamentoRepository.findAll();
-			if(!listaEquipamentos.isEmpty()) {
+			if (!listaEquipamentos.isEmpty()) {
 				return listaEquipamentos;
-			}else {
+			} else {
 				return null;
 			}
 		} catch (Exception e) {
-			// TODO: Fazer o tratamendo a exceção
+			System.err.println(e.getMessage());
 		}
 		return listaEquipamentos;
 	}
 
-
 	@Override
-	public Equipamento findById(Long idEquipamento) {
+	public Equipamento findOne(Long idEquipamento) {
 		Equipamento equipamento = new Equipamento();
 		try {
-			if(idEquipamento != null) {
-				equipamento = this.equipamentoRepository.findById(idEquipamento);
+			if (idEquipamento != null) {
+				equipamento = this.equipamentoRepository.findOne(idEquipamento);
 			}
-			
+
 		} catch (Exception e) {
-			// TODO: Fazer o tratamendo a exceção
+			System.err.println(e.getMessage());
 		}
 		return equipamento;
 	}
-	
+
 	@Override
 	public void salvarEquipamento(Equipamento equipamento) {
-		if(equipamento != null) {
-			this.equipamentoRepository.save(equipamento);	
-		}	
+		if (equipamento != null) {
+			this.equipamentoRepository.save(equipamento);
+		}
 	}
-	
+
 	@Override
 	public void deletarEquipamento(Long idEquipamento) {
 		this.equipamentoRepository.delete(idEquipamento);
