@@ -10,10 +10,4 @@ import com.viridis.recruter.api.entity.Fabricante;
  *
  */
 public interface FabricanteRepository extends CrudRepository<Fabricante, Long> {
-	/**
-	 * Método uqe retona um fabricante de equipamento
-	 * @param id
-	 * @return
-	 */
-	Fabricante findById(Long id);
 }
