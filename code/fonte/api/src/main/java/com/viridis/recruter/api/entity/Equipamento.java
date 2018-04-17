@@ -16,38 +16,39 @@ import javax.persistence.Table;
 
 /**
  * Entidade que representa um equipamento de dispositivo elétrico
+ * 
  * @author mauro.chaves
  *
  */
 @Entity
 @Table(name = "equipamento")
 public class Equipamento implements Serializable {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	@Column(name = "id_equipamento")
 	private Long id;
-	
+
 	@Column(name = "descricao_equipamento", length = 50, nullable = false)
 	private String descricao;
-	
+
 	@Column(name = "codigo_equipamento", length = 10, nullable = false)
 	private String codigo;
-	
+
 	@ManyToOne
-    @JoinColumn(name="id_fabricante")
+	@JoinColumn(name = "id_fabricante")
 	private Fabricante fabricante;
-	
+
 	@Enumerated(EnumType.STRING)
 	@Basic(optional = false)
 	@Column(name = "tipo_equipamento")
 	private TipoEquipamento tipoEquipamento;
-	
+
 	@Enumerated(EnumType.STRING)
 	@Basic(optional = false)
-	@Column(name = "status_equipamento")	
+	@Column(name = "status_equipamento")
 	private StatusEquipamento statusEquipamento;
 
 	public Long getId() {
@@ -97,9 +98,5 @@ public class Equipamento implements Serializable {
 	public void setStatusEquipamento(StatusEquipamento statusEquipamento) {
 		this.statusEquipamento = statusEquipamento;
 	}
-	
-	
-	
-	
 
 }

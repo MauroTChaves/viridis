@@ -11,23 +11,24 @@ import javax.persistence.Table;
 
 /**
  * Entidade que representa um fabricante de dispositivo elétrico
+ * 
  * @author mauro.chaves
  *
  */
 @Entity
 @Table(name = "fabricante")
 public class Fabricante implements Serializable {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	@Column(name = "id_fabricante")
 	private Long id;
-	
+
 	@Column(name = "codigo_fabricante", length = 10, nullable = false)
 	private String codigo;
-	
+
 	@Column(name = "nome_fabricante", length = 50, nullable = false)
 	private String nome;
 
