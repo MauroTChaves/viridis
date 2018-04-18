@@ -1,27 +1,28 @@
 package com.viridis.recruter.api.controller;
 
 import java.sql.SQLException;
+import java.util.Optional;
 
-import org.hibernate.service.spi.ServiceException;
-import org.springframework.beans.factory.annotation.Autowired;
+import javax.validation.Valid;
+
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.viridis.recruter.api.entity.OrdemServico;
-import com.viridis.recruter.api.service.OrdemServicoService;
+import com.viridis.recruter.api.repository.OrdemServicoRepository;
 
 /**
- * Controller da entidade de OrdemServico que possui relacionamento com a entidade
- * de equipamento
+ * Controller da entidade de OrdemServico que possui relacionamento com a
+ * entidade de equipamento
  * 
  * @author mauro.chaves
  *
@@ -30,17 +31,20 @@ import com.viridis.recruter.api.service.OrdemServicoService;
 @RequestMapping("api/ordensServico")
 public class OrdemServicoController {
 
-	@Autowired
-	private OrdemServicoService ordemServicoService;
+	private final OrdemServicoRepository ordemServicoRepository;
+
+	public OrdemServicoController(OrdemServicoRepository ordemServicoRepository) {
+		this.ordemServicoRepository = ordemServicoRepository;
+	}
 
 	/**
 	 * Retorna todos os OrdemServicos cadastrados na database
 	 * 
 	 * @return lista de OrdemServicos
 	 */
-	@GetMapping()
-	public Iterable<OrdemServico> getTodosOrdemServicos() {
-		return ordemServicoService.findAll();
+	@GetMapping
+	public Iterable<OrdemServico> getAll() {
+		return this.ordemServicoRepository.findAll();
 	}
 
 	/**
@@ -49,9 +53,11 @@ public class OrdemServicoController {
 	 * @param OrdemServicoId
 	 * @return
 	 */
-	@GetMapping(value = "/{ordemServicoId}")
-	public OrdemServico findById(@PathVariable(value = "ordemServicoId") Long ordemServicoId) {
-		return ordemServicoService.findOne(ordemServicoId);
+	@SuppressWarnings("rawtypes")
+	@GetMapping("/{id}")
+	public ResponseEntity findOne(@PathVariable Long id) {
+		Optional<OrdemServico> byId = this.ordemServicoRepository.findById(id);
+		return orElseReturn(byId, id);
 	}
 
 	/**
@@ -60,29 +66,31 @@ public class OrdemServicoController {
 	 * @param OrdemServico
 	 * @throws SQLException
 	 */
-	@PostMapping(value = { "/novaOrdemServico" })
-	public void salvarOrdemServico(@RequestBody OrdemServico ordemServico) throws SQLException {
-		try {
-			this.ordemServicoService.salvarOrdemServico(ordemServico);
-		} catch (ServiceException e) {
-			System.err.println(e.getMessage());
-		}
-
+	@PostMapping
+	@ResponseStatus(HttpStatus.CREATED)
+	public void create(@RequestBody @Valid OrdemServico ordemServico) {
+		this.ordemServicoRepository.save(ordemServico);
 	}
 
 	// TODO : Erro no método de alteração
-	@ResponseStatus(HttpStatus.OK)
-	@RequestMapping(method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public OrdemServico editarOrdemServico(@RequestBody OrdemServico ordemServico) {
-		OrdemServico ordemServicoAlterada = this.ordemServicoService.findOne(ordemServico.getId());
-		try {
-			this.ordemServicoService.salvarOrdemServico(ordemServicoAlterada);
-			return ordemServicoAlterada;
-		} catch (ServiceException e) {
-			// TODO: Fazer tratamento de exceção
-		}
-		return ordemServico;
+	@SuppressWarnings("rawtypes")
+	@PutMapping(value = "/{id}")
+	public ResponseEntity update(@PathVariable Long id, @RequestBody OrdemServico ordemServico) {
 
+		OrdemServico os = this.ordemServicoRepository.findOne(id);
+
+		if (os == null) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("OrdemService is not found");
+		} else {
+			os.setCodigo(ordemServico.getCodigo());
+			os.setDataAbertura(ordemServico.getDataAbertura());
+			os.setEquipamento(ordemServico.getEquipamento());
+			os.setObservacao(ordemServico.getObservacao());
+			os.setTipoServico(ordemServico.getTipoServico());
+			os.setSituacaoOrdemServico(ordemServico.getSituacaoOrdemServico());
+			ordemServicoRepository.save(os);
+			return ResponseEntity.ok().build();
+		}
 	}
 
 	/**
@@ -91,21 +99,37 @@ public class OrdemServicoController {
 	 * @param OrdemServicoId
 	 * @return
 	 */
-	@DeleteMapping(value = "/{OrdemServicoId}")
-	public String deletarOrdemServico(@PathVariable(value = "OrdemServicoId") Long ordemServicoId) {
-		String statusDelecao = "";
-		try {
-			OrdemServico ordemServicoDeletada = this.ordemServicoService.findOne(ordemServicoId);
-			if (ordemServicoDeletada != null) {
-				this.ordemServicoService.deletarOrdemServico(ordemServicoDeletada.getId());
-				statusDelecao = "OrdemServico " + ordemServicoDeletada.getCodigo() + " deletado com sucesso";
-			} else {
-				statusDelecao = "OrdemServico de id " + ordemServicoId + " não encontrado.";
-			}
-		} catch (Exception e) {
-			statusDelecao = "Erro ao deletar OrdemServico";
+	@SuppressWarnings("rawtypes")
+	@DeleteMapping(value = "/{id}")
+	public ResponseEntity delete(@PathVariable Long id) {
+		Optional<OrdemServico> byId = this.ordemServicoRepository.findById(id);
+		if (byId == null) {
+			return ResponseEntity.notFound().build();
+		} else if (byId.isPresent()) {
+			this.ordemServicoRepository.delete(byId.get());
+			return ResponseEntity.ok().build();
+		} else {
+			return ResponseEntity.notFound().build();
 		}
-		return statusDelecao;
+
+	}
+
+	/**
+	 * Método auxiliar para retornar status ok ou not found
+	 * 
+	 * @param optional
+	 * @param id
+	 * @return
+	 */
+	@SuppressWarnings("rawtypes")
+	private <T> ResponseEntity orElseReturn(Optional<T> optional, Long id) {
+		if (optional == null) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("OrdemService is not found");
+		} else if (optional.isPresent()) {
+			return optional.map(ResponseEntity::ok).get();
+		} else {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("OrdemService is not found");
+		}
 	}
 
 }

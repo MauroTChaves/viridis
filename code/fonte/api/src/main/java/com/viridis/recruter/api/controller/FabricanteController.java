@@ -1,23 +1,23 @@
 package com.viridis.recruter.api.controller;
 
-import java.sql.SQLException;
+import java.util.Optional;
 
-import org.hibernate.service.spi.ServiceException;
-import org.springframework.beans.factory.annotation.Autowired;
+import javax.validation.Valid;
+
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.viridis.recruter.api.entity.Fabricante;
-import com.viridis.recruter.api.service.FabricanteService;
+import com.viridis.recruter.api.repository.FabricanteRepository;
 
 /**
  * Controller da entidade de fabricante que possui relacionamento com a entidade
@@ -30,17 +30,21 @@ import com.viridis.recruter.api.service.FabricanteService;
 @RequestMapping("api/fabricantes")
 public class FabricanteController {
 
-	@Autowired
-	private FabricanteService fabricanteService;
+	private final FabricanteRepository fabricanteRepository;
+
+	public FabricanteController(FabricanteRepository fabricanteRepository) {
+		this.fabricanteRepository = fabricanteRepository;
+	}
 
 	/**
 	 * Retorna todos os fabricantes cadastrados na database
 	 * 
 	 * @return lista de Fabricantes
 	 */
-	@GetMapping()
-	public Iterable<Fabricante> getTodosFabricantes() {
-		return fabricanteService.findAll();
+
+	@GetMapping
+	public Iterable<Fabricante> getAll() {
+		return this.fabricanteRepository.findAll();
 	}
 
 	/**
@@ -49,40 +53,23 @@ public class FabricanteController {
 	 * @param fabricanteId
 	 * @return
 	 */
-	@GetMapping(value = "/{fabricanteId}")
-	public Fabricante findById(@PathVariable(value = "fabricanteId") Long fabricanteId) {
-		return fabricanteService.findOne(fabricanteId);
+	@SuppressWarnings("rawtypes")
+	@GetMapping("/{id}")
+	public ResponseEntity findOne(@PathVariable Long id) {
+		Optional<Fabricante> byId = this.fabricanteRepository.findById(id);
+		return orElseReturn(byId, id);
 	}
 
 	/**
 	 * Método que inseri o fabricante do database
 	 * 
 	 * @param fabricante
-	 * @throws SQLException
+	 * 
 	 */
-	@PostMapping(value = { "/novoFabricante" })
-	public void salvarFabricante(@RequestBody Fabricante fabricante) throws SQLException {
-		try {
-			this.fabricanteService.salvarFabricante(fabricante);
-		} catch (ServiceException e) {
-			System.err.println(e.getMessage());
-		}
-
-	}
-
-	// TODO : Erro no método de alteração
-	@ResponseStatus(HttpStatus.OK)
-	@RequestMapping(method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public Fabricante editarFabricante(@RequestBody Fabricante fabricante) {
-		Fabricante fabricanteAlterado = this.fabricanteService.findOne(fabricante.getId());
-		try {
-			this.fabricanteService.salvarFabricante(fabricanteAlterado);
-			return fabricanteAlterado;
-		} catch (ServiceException e) {
-			// TODO: Fazer tratamento de exceção
-		}
-		return fabricante;
-
+	@PostMapping
+	@ResponseStatus(HttpStatus.CREATED)
+	public void create(@RequestBody @Valid Fabricante fabricante) {
+		this.fabricanteRepository.save(fabricante);
 	}
 
 	/**
@@ -91,20 +78,59 @@ public class FabricanteController {
 	 * @param fabricanteId
 	 * @return
 	 */
-	@DeleteMapping(value = "/{fabricanteId}")
-	public String deletarFabricante(@PathVariable(value = "fabricanteId") Long fabricanteId) {
-		String statusDelacao = "";
-		try {
-			Fabricante fabricanteDeletado = this.fabricanteService.findOne(fabricanteId);
-			if (fabricanteDeletado != null) {
-				this.fabricanteService.deletarFabricante(fabricanteDeletado.getId());
-				statusDelacao = "Fabricante " + fabricanteDeletado.getNome() + " deletado com sucesso";
-			} else {
-				statusDelacao = "Fabricante de id " + fabricanteId + " não encontrado.";
-			}
-		} catch (Exception e) {
-			statusDelacao = "Erro ao deletar fabricante";
+	@SuppressWarnings("rawtypes")
+	@DeleteMapping(value = "/{id}")
+	public ResponseEntity delete(@PathVariable Long id) {
+		Optional<Fabricante> byId = this.fabricanteRepository.findById(id);
+		if (byId == null) {
+			return ResponseEntity.notFound().build();
+		} else if (byId.isPresent()) {
+			this.fabricanteRepository.delete(byId.get());
+			return ResponseEntity.ok().build();
+		} else {
+			return ResponseEntity.notFound().build();
 		}
-		return statusDelacao;
+
 	}
+
+	/**
+	 * Método que altera um fabricante da database
+	 * 
+	 * @param fabricanteId
+	 * @return
+	 */
+	@SuppressWarnings("rawtypes")
+	@PutMapping(value = "/{id}")
+	public ResponseEntity update(@PathVariable Long id, @RequestBody Fabricante fabricante) {
+
+		Fabricante fb = this.fabricanteRepository.findOne(id);
+
+		if (fb == null) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Fabricant is not found");
+		} else {
+			fb.setCodigo(fabricante.getCodigo());
+			fb.setNome(fabricante.getNome());
+			fabricanteRepository.save(fb);
+			return ResponseEntity.ok().build();
+		}
+	}
+
+	/**
+	 * Método auxiliar para retornar status ok ou not found
+	 * 
+	 * @param optional
+	 * @param id
+	 * @return
+	 */
+	@SuppressWarnings("rawtypes")
+	private <T> ResponseEntity orElseReturn(Optional<T> optional, Long id) {
+		if (optional == null) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Fabricant is not found");
+		} else if (optional.isPresent()) {
+			return optional.map(ResponseEntity::ok).get();
+		} else {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Fabricant is not found");
+		}
+	}
+
 }
